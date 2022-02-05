@@ -1,33 +1,34 @@
 {
   "project_info": {
-    "project_number": "1053183474635",
-    "project_id": "flutter-iot-42900",
-    "storage_bucket": "flutter-iot-42900.appspot.com"
+    "project_number": "912525459237",
+    "firebase_url": "https://flutter-notification-6f420-default-rtdb.firebaseio.com",
+    "project_id": "flutter-notification-6f420",
+    "storage_bucket": "flutter-notification-6f420.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1053183474635:android:cd084e04fe091b0fc5d44e",
+        "mobilesdk_app_id": "1:912525459237:android:d46a4e8a85d24addc8e4cc",
         "android_client_info": {
           "package_name": "com.example.flutter_iot"
         }
       },
       "oauth_client": [
         {
-          "client_id": "1053183474635-fkt6f8gnv41qeerq0e10k1bielbkjipk.apps.googleusercontent.com",
+          "client_id": "912525459237-fp5iu6l9bnrf9j7ollcqi2s8nbprs13i.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAgqXjPs6_juek9_xKLx6J_YNZG1z4KcU8"
+          "current_key": "AIzaSyCVFvOK4WYch3j8Flcb-XVs_jPhTaUeJmE"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "1053183474635-fkt6f8gnv41qeerq0e10k1bielbkjipk.apps.googleusercontent.com",
+              "client_id": "912525459237-fp5iu6l9bnrf9j7ollcqi2s8nbprs13i.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

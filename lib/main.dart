@@ -1,144 +1,119 @@
-// ignore_for_file: unnecessary_null_comparison
+import 'dart:async';
+import 'dart:ui';
 
-import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  print('Handling a background message ${message.messageId}');
+  print(message.data);
+  flutterLocalNotificationsPlugin.show(
+      message.data.hashCode,
+      message.data['title'],
+      message.data['body'],
+      NotificationDetails(
+        android: AndroidNotificationDetails(channel.id, channel.name,
+            channelDescription: channel.description, playSound: true),
+      ));
+}
+
 const AndroidNotificationChannel channel = AndroidNotificationChannel(
-    'flutter_iot_noti_test', // id
-    'Flutter IoT Notifications', // title
-    description: 'Someone is detected outside the gate.', // description
+    'high_importance_channel', // id
+    'High Importance Notifications', // title
+    description:
+        'This channel is used for important notifications.', // description
     importance: Importance.high,
     playSound: true);
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
-Future _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  print('A bg message just showed up : ${message.messageId}');
-}
-
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   await flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel);
-
-  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-    alert: true,
-    badge: true,
-    sound: true,
-  );
-
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
-
   @override
-  State<MyApp> createState() => _MyAppState();
+  _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
+  final DatabaseReference _database = FirebaseDatabase.instance.ref();
+  // FirebaseMessaging _fcm;
+  String? message;
+  String? token;
+
   @override
   void initState() {
     super.initState();
+    var initialzationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    var initializationSettings =
+        InitializationSettings(android: initialzationSettingsAndroid);
+
+    flutterLocalNotificationsPlugin.initialize(initializationSettings);
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      RemoteNotification? notification = message.notification;
-      AndroidNotification? android = message.notification?.android;
+      RemoteNotification notification =
+          message.notification as RemoteNotification;
+      AndroidNotification android =
+          message.notification?.android as AndroidNotification;
       if (notification != null && android != null) {
         flutterLocalNotificationsPlugin.show(
             notification.hashCode,
             notification.title,
             notification.body,
             NotificationDetails(
-              android: AndroidNotificationDetails(
-                channel.id,
-                channel.name,
-                channelDescription: channel.description,
-                color: Colors.blue,
-                playSound: true,
-                icon: '@mipmap/ic_launcher',
-              ),
+              android: AndroidNotificationDetails(channel.id, channel.name,
+                  channelDescription: channel.description,
+                  icon: '@mipmap/ic_launcher',
+                  playSound: true),
             ));
       }
     });
-
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('A new onMessageOpenedApp event was published!');
-      RemoteNotification notification =
-          message.notification as RemoteNotification;
-      AndroidNotification android =
-          message.notification?.android as AndroidNotification;
-      if (notification != null && android != null) {
-        showDialog(
-            context: context,
-            builder: (_) {
-              return AlertDialog(
-                title: Text(notification.title ?? ""),
-                content: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [Text(notification.body ?? "")],
-                  ),
-                ),
-              );
-            });
-      }
-    });
+    getToken();
   }
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Switch On and Off LED',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+        home: Scaffold(
+      appBar: AppBar(
+        title: Text('Notification'),
       ),
-      home: Scaffold(
-        appBar: AppBar(
-          centerTitle: true,
-          title: Text("IoT Flutter"),
-        ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextButton(
-                onPressed: () {
-                  flutterLocalNotificationsPlugin.show(
-                    0,
-                    'flutter_iot',
-                    "Flutter IoT",
-                    NotificationDetails(
-                      android: AndroidNotificationDetails(
-                          channel.id, channel.name,
-                          channelDescription: channel.description,
-                          importance: Importance.high,
-                          color: Colors.blue,
-                          playSound: true,
-                          icon: '@mipmap/ic_launcher'),
-                    ),
-                  );
-                },
-                child: Text("Switch on"),
-              ),
-              TextButton(
-                onPressed: () {},
-                child: Text("Switch off"),
-              ),
-            ],
-          ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              'testing',
+              style: Theme.of(context).textTheme.headline4,
+            ),
+          ],
         ),
       ),
-    );
+      // This trailing comma makes auto-formatting nicer for build methods.
+    ));
+  }
+
+  getToken() async {
+    token = await FirebaseMessaging.instance.getToken() as String;
+    setState(() {
+      token = token;
+    });
+    final DatabaseReference _database = FirebaseDatabase.instance.ref();
+    _database.child('fcm-token/${token}').set({"token": token});
+    print("the token is ${token}");
   }
 }
